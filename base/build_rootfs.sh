@@ -10,7 +10,14 @@ BASEDIR=$(pwd)
 
 DOCKERHOST=
 DOCKERPORT=
-DOCKERTAG=raspbian:$(date +%Y%m%d)
+DOCKERTAG=tbeck/raspbian:$(date +%Y%m%d)
+
+DEFAULT_MIRROR=http://archive.raspbian.com/raspbian
+MIRROR=${DBS_MIRROR:-$DEFAULT_MIRROR}
+
+function clean_rootfs() {
+	
+}
 
 # Check and install dependencies
 pacaur --needed -S binfmt-support qemu-user-static binfmt-qemu-static debootstrap arm-linux-gnueabihf-gcc
@@ -35,17 +42,22 @@ sudo update-binfmts --enable
 
 # Build rootfs (this takes some time)
 mkdir -p ${BASEDIR}/rootfs
-fakeroot debootstrap --foreign --no-check-gpg --include=ca-certificates --arch=armhf stable ${BASEDIR}/rootfs http://archive.raspbian.com/raspbian
+fakeroot debootstrap --variant=minbase --foreign --no-check-gpg --include=ca-certificates --arch=armhf stable ${BASEDIR}/rootfs ${MIRROR}
 
 # Cleanup and create the tarball
-# TODO Actually clean the rootfs before creating the tarball.
 sudo chown -R root:root ${BASEDIR}/rootfs
 sudo cp $(which qemu-arm-static) ${BASEDIR}/rootfs/usr/bin/
 sudo chroot ${BASEDIR}/rootfs /debootstrap/debootstrap --second-stage --verbose
 #sudo rm ${BASEDIR}/rootfs/usr/bin/qemu-arm-static
+
+sudo chroot ${BASEDIR}/rootfs mount -t proc /proc /proc
+sudo cp setup_rootfs.sh ${BASEDIR}/rootfs/
+sudo chroot ${BASEDIR}/rootfs /setup_rootfs.sh
+sudo umount ${BASEDIR}/rootfs/proc
+
 echo -n "Creating tarball..."
 sudo tar -czf rootfs.tar.gz -C ${BASEDIR}/rootfs . && \
-sudo rm -rf ${BASEDIR}/rootfs
+#sudo rm -rf ${BASEDIR}/rootfs
 echo "done."
 
 sudo docker build --tag ${DOCKERTAG} .
