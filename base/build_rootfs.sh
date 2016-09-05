@@ -15,10 +15,6 @@ DOCKERTAG=tbeck/raspbian:$(date +%Y%m%d)
 DEFAULT_MIRROR=http://archive.raspbian.com/raspbian
 MIRROR=${DBS_MIRROR:-$DEFAULT_MIRROR}
 
-function clean_rootfs() {
-	
-}
-
 # Check and install dependencies
 pacaur --needed -S binfmt-support qemu-user-static binfmt-qemu-static debootstrap arm-linux-gnueabihf-gcc
 
@@ -54,6 +50,7 @@ sudo chroot ${BASEDIR}/rootfs mount -t proc /proc /proc
 sudo cp setup_rootfs.sh ${BASEDIR}/rootfs/
 sudo chroot ${BASEDIR}/rootfs /setup_rootfs.sh
 sudo umount ${BASEDIR}/rootfs/proc
+sudo rm -f ${BASEDIR}/rootfs/setup_rootfs.sh
 
 echo -n "Creating tarball..."
 sudo tar -czf rootfs.tar.gz -C ${BASEDIR}/rootfs . && \

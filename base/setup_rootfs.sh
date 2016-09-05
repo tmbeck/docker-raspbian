@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export PATH=/bin:/sbin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin
+export LANGUAGE=en_US
+
 wget https://archive.raspbian.org/raspbian.public.key -O - | apt-key add -
 echo "deb http://archive.raspbian.org/raspbian stable main contrib non-free" > /etc/apt/sources.list
 apt-get update && apt-get dist-upgrade -y
