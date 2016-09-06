@@ -6,6 +6,9 @@
 # This is where the rootfs will be placed - don't use /tmp for this as /tmp
 # is typically mounted with options nodev and nosuid (see mount(8)).
 # 
+# TODO Add error checking
+# TODO Add ability of caller to specify docker host, port, tag, version, etc.
+#
 BASEDIR=$(pwd)
 
 DOCKERHOST=
@@ -46,17 +49,23 @@ sudo cp $(which qemu-arm-static) ${BASEDIR}/rootfs/usr/bin/
 sudo chroot ${BASEDIR}/rootfs /debootstrap/debootstrap --second-stage --verbose
 #sudo rm ${BASEDIR}/rootfs/usr/bin/qemu-arm-static
 
+# Prep the rootfs to run the setup script, then run it and cleanup.
+sudo wget https://archive.raspbian.org/raspbian.public.key -O ${BASEDIR}/rootfs/raspbian.public.key
 sudo chroot ${BASEDIR}/rootfs mount -t proc /proc /proc
 sudo cp setup_rootfs.sh ${BASEDIR}/rootfs/
 sudo chroot ${BASEDIR}/rootfs /setup_rootfs.sh
 sudo umount ${BASEDIR}/rootfs/proc
 sudo rm -f ${BASEDIR}/rootfs/setup_rootfs.sh
+sudo rm -f ${BASEDIR}/rootfs/raspbian.public.key
 
-echo -n "Creating tarball..."
-sudo tar -czf rootfs.tar.gz -C ${BASEDIR}/rootfs . && \
-#sudo rm -rf ${BASEDIR}/rootfs
-echo "done."
+#echo -n "Creating tarball..."
+#sudo tar -czf rootfs.tar.gz -C ${BASEDIR}/rootfs . && \
+##sudo rm -rf ${BASEDIR}/rootfs
+#echo "done."
 
-sudo docker build --tag ${DOCKERTAG} .
+# Import base filesystem into a new docker image
+sudo tar -C ${BASEDIR}/rootfs -czf- . | sudo docker import - ${DOCKERTAG}
+
+#sudo docker build --tag ${DOCKERTAG} .
 
 # Tag into repositories here.

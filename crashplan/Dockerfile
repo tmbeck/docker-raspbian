@@ -2,11 +2,6 @@ FROM docker.timbeckistan.com:5000/tbeck/raspbian:latest
 
 MAINTAINER Tim Beck <tmbeck@gmail.com>
 
-RUN wget https://archive.raspbian.org/raspbian.public.key -O - | apt-key add -
-
-# We need stable for java-8
-RUN echo "deb http://archive.raspbian.org/raspbian stable main contrib non-free" > /etc/apt/sources.list
-
 RUN apt-get update && apt-get install -y \ 
 	openjdk-8-jre-headless
 	
