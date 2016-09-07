@@ -1,6 +1,9 @@
-FROM docker.timbeckistan.com:5000/tbeck/raspbian:latest
+FROM tbeck/raspbian:latest
 
 MAINTAINER Tim Beck <tmbeck@gmail.com>
+
+# To satisfy the openjdk package.
+RUN mkdir -p /usr/share/man/man1/
 
 RUN apt-get update && apt-get install -y \ 
 	openjdk-8-jre-headless
@@ -11,6 +14,7 @@ ADD install.sh /
 ADD CrashPlan_4.7.0_Linux.tgz /
 
 RUN mkdir -p /usr/local/crashplan
+
 WORKDIR /usr/local/crashplan
 RUN cat /crashplan-install/CrashPlan_4.7.0.cpi | gzip -d -c - | cpio -i --no-preserve-owner && \
 	rm -f /usr/local/crashplan/libjtux.so

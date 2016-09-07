@@ -39,9 +39,14 @@ fi
 sudo systemctl restart systemd-binfmt
 sudo update-binfmts --enable
 
+if [[ -d ${BASEDIR}/rootfs ]]; then
+	echo "${BASEDIR}/rootfs already exists! Aborting."
+	exit 1
+fi
+
 # Build rootfs (this takes some time)
 mkdir -p ${BASEDIR}/rootfs
-fakeroot debootstrap --variant=minbase --foreign --no-check-gpg --include=ca-certificates --arch=armhf stable ${BASEDIR}/rootfs ${MIRROR}
+sudo fakeroot debootstrap --variant=minbase --foreign --no-check-gpg --include=ca-certificates --arch=armhf stable ${BASEDIR}/rootfs ${MIRROR}
 
 # Cleanup and create the tarball
 sudo chown -R root:root ${BASEDIR}/rootfs
@@ -51,21 +56,14 @@ sudo chroot ${BASEDIR}/rootfs /debootstrap/debootstrap --second-stage --verbose
 
 # Prep the rootfs to run the setup script, then run it and cleanup.
 sudo wget https://archive.raspbian.org/raspbian.public.key -O ${BASEDIR}/rootfs/raspbian.public.key
-sudo chroot ${BASEDIR}/rootfs mount -t proc /proc /proc
+sudo chroot ${BASEDIR}/rootfs /bin/mount -t proc /proc /proc
 sudo cp setup_rootfs.sh ${BASEDIR}/rootfs/
 sudo chroot ${BASEDIR}/rootfs /setup_rootfs.sh
 sudo umount ${BASEDIR}/rootfs/proc
 sudo rm -f ${BASEDIR}/rootfs/setup_rootfs.sh
 sudo rm -f ${BASEDIR}/rootfs/raspbian.public.key
 
-#echo -n "Creating tarball..."
-#sudo tar -czf rootfs.tar.gz -C ${BASEDIR}/rootfs . && \
-##sudo rm -rf ${BASEDIR}/rootfs
-#echo "done."
-
 # Import base filesystem into a new docker image
 sudo tar -C ${BASEDIR}/rootfs -czf- . | sudo docker import - ${DOCKERTAG}
-
-#sudo docker build --tag ${DOCKERTAG} .
 
 # Tag into repositories here.

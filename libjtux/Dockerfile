@@ -1,8 +1,10 @@
-FROM docker.timbeckistan.com:5000/tbeck/raspbian:latest
+FROM tbeck/raspbian:latest
 MAINTAINER Tim Beck <tmbeck@gmail.com>
 
 RUN apt-get update && apt-get install --no-install-recommends -y git libjna-java openjdk-8-jdk patch make gcc libc6-dev
-RUN git clone https://github.com/swenson/jtux
+
+# When running without --verbose, git clone hangs indefinitely.
+RUN git clone --verbose --depth=1 https://github.com/swenson/jtux
 
 WORKDIR /jtux
 
