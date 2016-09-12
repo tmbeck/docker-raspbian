@@ -1,3 +1,10 @@
+Raspbian-based Docker Images
+============================
+
+This repository contains my raspbian-based docker containers.
+
+qemu-user-static is used to run binaries compiled for the Raspberry Pi. There is a significant performance impact compared to native application performance, but on modern x86 hardware the performance hit isn't totally crippling.
+
 Setup On Arch Linux
 ===================
 

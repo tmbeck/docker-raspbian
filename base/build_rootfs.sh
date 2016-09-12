@@ -4,7 +4,8 @@
 #
 
 # This is where the rootfs will be placed - don't use /tmp for this as /tmp
-# is typically mounted with options nodev and nosuid (see mount(8)).
+# is typically mounted with options nodev and nosuid (see mount(8)). sudo is
+# needed due to the device files, etc. created in the rootfs directory.
 # 
 # TODO Add error checking
 # TODO Add ability of caller to specify docker host, port, tag, version, etc.
@@ -13,7 +14,8 @@ BASEDIR=$(pwd)
 
 DOCKERHOST=
 DOCKERPORT=
-DOCKERTAG=tbeck/raspbian:$(date +%Y%m%d)
+DOCKERNAME=tbeck/raspbian
+DOCKERTAG=$(date +%Y%m%d)
 
 DEFAULT_MIRROR=http://archive.raspbian.com/raspbian
 MIRROR=${DBS_MIRROR:-$DEFAULT_MIRROR}
@@ -64,6 +66,8 @@ sudo rm -f ${BASEDIR}/rootfs/setup_rootfs.sh
 sudo rm -f ${BASEDIR}/rootfs/raspbian.public.key
 
 # Import base filesystem into a new docker image
-sudo tar -C ${BASEDIR}/rootfs -czf- . | sudo docker import - ${DOCKERTAG}
+sudo tar -C ${BASEDIR}/rootfs -czf ${BASEDIR}/rootfs.tar.gz . && \
+sudo rm -rf ${BASEDIR}/rootfs
+docker build --tag ${DOCKERNAME}:${DOCKERTAG} . && \
+docker tag ${DOCKERNAME}:${DOCKERTAG} ${DOCKERNAME}:latest
 
-# Tag into repositories here.

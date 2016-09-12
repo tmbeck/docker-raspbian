@@ -28,6 +28,10 @@ RUN /install.sh && \
 	rm -rf /crashplan-install
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# See https://support.code42.com/CrashPlan/4/Troubleshooting/Identifying_Ports_Used_By_The_Code42_CrashPlan_App
+EXPOSE 4242
+EXPOSE 4243
+
 ENV JAVACOMMON=/usr/bin/java
 ENV LC_ALL=en_US.UTF-8
 ENV LC_CTYPE=en_US.UTF-8
@@ -38,4 +42,4 @@ ENV FULL_CP="${CPD}:${TARGETDIR}/lang"
 ENV SRV_JAVA_OPTS="-Dfile.encoding=UTF-8 -Dapp=CrashPlanService -DappBaseName=CrashPlan -Xms20m -Xmx1024m -Dsun.net.inetaddr.ttl=300 -Dnetworkaddress.cache.ttl=300 -Dsun.net.inetaddr.negative.ttl=0 -Dnetworkaddress.cache.negative.ttl=0 -Dc42.native.md5.enabled=false"
 
 WORKDIR /usr/local/crashplan
-CMD [ "$JAVACOMMON $SRV_JAVA_OPTS -classpath $FULL_CP com.backup42.service.CPService 2>&1" ]
+CMD $JAVACOMMON $SRV_JAVA_OPTS -classpath $FULL_CP com.backup42.service.CPService
